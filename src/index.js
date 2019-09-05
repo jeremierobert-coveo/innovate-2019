@@ -6,7 +6,7 @@
 // @match      https://connect.coveo.com/s/contactsupport*
 // @copyright  Coveo 2019
 // @grant    GM_xmlhttpRequest
-// @connect http://52.90.130.34:5000/*
+// @connect 52.90.130.34:5000
 // @require http://code.jquery.com/jquery-latest.js
 // ==/UserScript==
 "use strict";
@@ -48,7 +48,9 @@ function getPrediction(userInput, productId) {
 
 function getProduct() {
   /** @type {HTMLAnchorElement} */
-  const selector = document.querySelector(".forceCommunityContactSupportForm .slds-form:first-child a.select");
+  const selector = document.querySelector(
+    ".forceCommunityContactSupportForm .slds-form:first-child a.select"
+  );
   switch (selector.innerText) {
     case "Coveo for Salesforce":
       return "salesforce";
@@ -67,9 +69,6 @@ let lastPrediction;
 async function handleInputChange() {
   const inputValue = this.value;
 
-  const shadow = document.getElementById("shadow");
-  shadow.innerHTML = "";
-
   if (!inputValue || inputValue == lastPrediction) {
     log("skip");
     return;
@@ -87,6 +86,8 @@ async function handleInputChange() {
     predictionSpan.innerText = prediction;
     predictionSpan.style.color = "#4ED6FF";
 
+    const shadow = document.getElementById("shadow");
+    shadow.innerHTML = "";
     shadow.append(inputSpan, predictionSpan);
 
     log("predict", prediction);
@@ -112,6 +113,7 @@ function handlePageReady() {
   shadow.style.height = "36px";
   shadow.style.left = 0;
   shadow.style.padding = "8px 1rem 0px 13px";
+  shadow.style.zIndex = -1000;
 
   subjectInput.parentElement.appendChild(shadow);
 
@@ -120,6 +122,9 @@ function handlePageReady() {
   subjectInput.addEventListener("input", () => {
     clearTimeout(currentHandler);
     currentHandler = setTimeout(handleInputChange.bind(subjectInput), 500);
+
+    const shadow = document.getElementById("shadow");
+    shadow.innerHTML = "";
   });
 }
 
