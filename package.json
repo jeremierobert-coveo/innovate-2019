@@ -1,0 +1,9 @@
+{
+  "name": "innovate",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": { },
+  "author": "jrobert@coveo.com",
+  "license": "ISC"
+}
