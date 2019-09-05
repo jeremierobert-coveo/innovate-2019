@@ -67,7 +67,7 @@ async function handleInputChange() {
 
     const predictionSpan = document.createElement('span');
     predictionSpan.innerText = prediction;
-    predictionSpan.style.color = 'blue';
+    predictionSpan.style.color = '#4ED6FF';
 
     const shadow = document.getElementById('shadow');
     shadow.innerHTML = '';
