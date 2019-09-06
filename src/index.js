@@ -16,6 +16,8 @@ const TAB = 9;
 const RIGHT_ARROW = 39;
 const ENTER = 13;
 const SPACE = 32;
+const INPUT_TIMEOUT = 1000;
+const SEPARATOR = ' ';
 
 function log(...message) {
   console.log(["Innovate 2019", ...message]);
@@ -90,7 +92,7 @@ async function handleInputChange(originalInput) {
     lastPrediction = prediction;
 
     const inputSpan = document.createElement("span");
-    inputSpan.innerText = inputValue;
+    inputSpan.innerText = inputValue + SEPARATOR;
     inputSpan.style.color = "transparent";
 
     const predictionSpan = document.createElement("span");
@@ -120,9 +122,9 @@ function handleKeypress(originalInput, event) {
     inputValue != lastSubject &&
     (code == TAB || code == ENTER || code == RIGHT_ARROW)
   ) {
-    this.value = inputValue + lastPrediction;
-    originalInput.value = inputValue + lastPrediction;
-    lastSubject = inputValue + lastPrediction;
+    this.value = inputValue + SEPARATOR + lastPrediction;
+    originalInput.value = inputValue + SEPARATOR + lastPrediction;
+    lastSubject = inputValue + SEPARATOR + lastPrediction;
 
     originalInput.dispatchEvent(new CustomEvent("keyup"));
   }
@@ -169,13 +171,11 @@ function handlePageReady() {
     const shadow = document.getElementById("shadow");
     shadow.innerHTML = "";
 
-    if (event.keyCode == SPACE) {
-      clearTimeout(currentHandler);
-      currentHandler = setTimeout(
-        handleInputChange.bind(shadowInput, subjectInput),
-        500
-      );
-    }
+    clearTimeout(currentHandler);
+    currentHandler = setTimeout(
+      handleInputChange.bind(shadowInput, subjectInput),
+      INPUT_TIMEOUT
+    );
   });
 }
 
