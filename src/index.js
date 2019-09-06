@@ -15,6 +15,7 @@ const SUGGESTION_COLOR = "lightgrey";
 const TAB = 9;
 const RIGHT_ARROW = 39;
 const ENTER = 13;
+const SPACE = 32;
 
 function log(...message) {
   console.log(["Innovate 2019", ...message]);
@@ -89,7 +90,7 @@ async function handleInputChange(originalInput) {
     lastPrediction = prediction;
 
     const inputSpan = document.createElement("span");
-    inputSpan.innerText = inputValue + " ";
+    inputSpan.innerText = inputValue;
     inputSpan.style.color = "transparent";
 
     const predictionSpan = document.createElement("span");
@@ -99,10 +100,6 @@ async function handleInputChange(originalInput) {
     const shadow = document.getElementById("shadow");
     shadow.innerHTML = "";
     shadow.append(inputSpan, predictionSpan);
-
-    originalInput.value = inputValue + " " + prediction;
-
-    originalInput.dispatchEvent(new CustomEvent("keyup"));
     log("predict", prediction);
   } catch (e) {
     console.error(["inovate 2019", e]);
@@ -123,9 +120,11 @@ function handleKeypress(originalInput, event) {
     inputValue != lastSubject &&
     (code == TAB || code == ENTER || code == RIGHT_ARROW)
   ) {
-    this.value = inputValue + " " + lastPrediction;
-    originalInput.value = inputValue + " " + lastPrediction;
-    lastSubject = inputValue + " " + lastPrediction;
+    this.value = inputValue + lastPrediction;
+    originalInput.value = inputValue + lastPrediction;
+    lastSubject = inputValue + lastPrediction;
+
+    originalInput.dispatchEvent(new CustomEvent("keyup"));
   }
 }
 
@@ -166,15 +165,17 @@ function handlePageReady() {
     "keydown",
     handleKeypress.bind(shadowInput, subjectInput)
   );
-  shadowInput.addEventListener("input", () => {
-    clearTimeout(currentHandler);
-    currentHandler = setTimeout(
-      handleInputChange.bind(shadowInput, subjectInput),
-      500
-    );
-
+  shadowInput.addEventListener("keydown", event => {
     const shadow = document.getElementById("shadow");
     shadow.innerHTML = "";
+
+    if (event.keyCode == SPACE) {
+      clearTimeout(currentHandler);
+      currentHandler = setTimeout(
+        handleInputChange.bind(shadowInput, subjectInput),
+        500
+      );
+    }
   });
 }
 
