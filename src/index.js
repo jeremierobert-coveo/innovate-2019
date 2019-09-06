@@ -17,7 +17,7 @@ const RIGHT_ARROW = 39;
 const ENTER = 13;
 const SPACE = 32;
 const INPUT_TIMEOUT = 1000;
-const SEPARATOR = ' ';
+const SEPARATOR = " ";
 
 function log(...message) {
   console.log(["Innovate 2019", ...message]);
@@ -91,24 +91,15 @@ async function handleInputChange(originalInput) {
     const prediction = await getPrediction(inputValue, getProduct());
     lastPrediction = prediction;
 
-    const inputSpan = document.createElement("span");
-    inputSpan.innerText = inputValue + SEPARATOR;
-    inputSpan.style.color = "transparent";
-
-    const predictionSpan = document.createElement("span");
-    predictionSpan.innerText = prediction;
-    predictionSpan.style.color = SUGGESTION_COLOR;
-
     const shadow = document.getElementById("shadow");
     shadow.innerHTML = "";
-    shadow.append(inputSpan, predictionSpan);
+    shadow.style.color = "transparent";
+    shadow.innerHTML = `${inputValue} <span style="color: ${SUGGESTION_COLOR};">${prediction}</span>`;
     log("predict", prediction);
   } catch (e) {
     console.error(["inovate 2019", e]);
   }
 }
-
-let lastSubject;
 
 /**
  * @param {HTMLInputElement} originalInput
@@ -117,15 +108,14 @@ let lastSubject;
 function handleKeypress(originalInput, event) {
   const inputValue = this.value;
   const code = event.keyCode;
-  if (
-    lastPrediction &&
-    inputValue != lastSubject &&
-    (code == TAB || code == ENTER || code == RIGHT_ARROW)
-  ) {
-    this.value = inputValue + SEPARATOR + lastPrediction;
-    originalInput.value = inputValue + SEPARATOR + lastPrediction;
-    lastSubject = inputValue + SEPARATOR + lastPrediction;
+  if (lastPrediction && (code == TAB || code == ENTER || code == RIGHT_ARROW)) {
 
+    this.value = inputValue.trim() + SEPARATOR + lastPrediction.trim();
+    originalInput.value = inputValue.trim() + SEPARATOR + lastPrediction.trim();
+
+    originalInput.dispatchEvent(new CustomEvent("keyup"));
+  } else {
+    originalInput.value = inputValue;
     originalInput.dispatchEvent(new CustomEvent("keyup"));
   }
 }
