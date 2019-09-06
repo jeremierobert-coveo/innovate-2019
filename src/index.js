@@ -6,10 +6,15 @@
 // @match      https://connect.coveo.com/s/contactsupport*
 // @copyright  Coveo 2019
 // @grant    GM_xmlhttpRequest
-// @connect 52.90.130.34:5000
+// @connect coveo-hackaton-2019-dev.us-east-1.elasticbeanstalk.com
 // @require http://code.jquery.com/jquery-latest.js
 // ==/UserScript==
 "use strict";
+
+const SUGGESTION_COLOR = "lightgrey";
+const TAB = 9;
+const RIGHT_ARROW = 39;
+const ENTER = 13;
 
 function log(...message) {
   console.log(["Innovate 2019", ...message]);
@@ -23,8 +28,12 @@ function log(...message) {
  * @returns {Promise<string>} The predicted intent.
  */
 function getPrediction(userInput, productId) {
-  const url = `http://52.90.130.34:5000/predict?q=${userInput}&v=1${
-    productId ? "&p=" + productId : ""
+  const url = `http://coveo-hackaton-2019-dev.us-east-1.elasticbeanstalk.com/predict?q=${encodeURIComponent(
+    userInput
+  )}&v=1${
+    productId && encodeURIComponent(productId)
+      ? "&p=" + encodeURIComponent(productId)
+      : ""
   }`;
   log("GET", url);
   return new Promise((resolve, reject) => {
@@ -64,9 +73,10 @@ function getProduct() {
 let lastPrediction;
 
 /**
+ * @param {HTMLInputElement} originalInput
  * @this {HTMLInputElement}
  */
-async function handleInputChange() {
+async function handleInputChange(originalInput) {
   const inputValue = this.value;
 
   if (!inputValue || inputValue == lastPrediction) {
@@ -84,15 +94,38 @@ async function handleInputChange() {
 
     const predictionSpan = document.createElement("span");
     predictionSpan.innerText = prediction;
-    predictionSpan.style.color = "#4ED6FF";
+    predictionSpan.style.color = SUGGESTION_COLOR;
 
     const shadow = document.getElementById("shadow");
     shadow.innerHTML = "";
     shadow.append(inputSpan, predictionSpan);
 
+    originalInput.value = inputValue + " " + prediction;
+
+    originalInput.dispatchEvent(new CustomEvent("keyup"));
     log("predict", prediction);
   } catch (e) {
     console.error(["inovate 2019", e]);
+  }
+}
+
+let lastSubject;
+
+/**
+ * @param {HTMLInputElement} originalInput
+ * @this {HTMLInputElement}
+ */
+function handleKeypress(originalInput, event) {
+  const inputValue = this.value;
+  const code = event.keyCode;
+  if (
+    lastPrediction &&
+    inputValue != lastSubject &&
+    (code == TAB || code == ENTER || code == RIGHT_ARROW)
+  ) {
+    this.value = inputValue + " " + lastPrediction;
+    originalInput.value = inputValue + " " + lastPrediction;
+    lastSubject = inputValue + " " + lastPrediction;
   }
 }
 
@@ -106,22 +139,39 @@ function handlePageReady() {
     return;
   }
 
+  subjectInput.style.display = "none";
+
+  const shadowInput = document.createElement("input");
+  shadowInput.classList.add("case-subject");
+  shadowInput.classList.add("input");
+  shadowInput.style.backgroundColor = "transparent";
+
   /** @type {HTMLInputElement} */
   const shadow = document.createElement("span");
   shadow.id = "shadow";
   shadow.style.position = "absolute";
   shadow.style.height = "36px";
   shadow.style.left = 0;
-  shadow.style.padding = "8px 1rem 0px 13px";
+  shadow.style.padding = "9px 1rem 0px 13px";
   shadow.style.zIndex = -1000;
 
-  subjectInput.parentElement.appendChild(shadow);
+  shadowInput.appendChild(shadow);
+
+  subjectInput.parentElement.appendChild(shadowInput);
+  shadowInput.parentElement.appendChild(shadow);
 
   let currentHandler;
 
-  subjectInput.addEventListener("input", () => {
+  shadowInput.addEventListener(
+    "keydown",
+    handleKeypress.bind(shadowInput, subjectInput)
+  );
+  shadowInput.addEventListener("input", () => {
     clearTimeout(currentHandler);
-    currentHandler = setTimeout(handleInputChange.bind(subjectInput), 500);
+    currentHandler = setTimeout(
+      handleInputChange.bind(shadowInput, subjectInput),
+      500
+    );
 
     const shadow = document.getElementById("shadow");
     shadow.innerHTML = "";
